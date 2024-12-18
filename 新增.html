@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>代辦事項管理系統</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(to bottom, #f8f9fa, #e9ecef);
+        }
+        .card {
+            border-radius: 15px;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .btn-custom {
+            background-color: #6c63ff;
+            border: none;
+            color: white;
+            transition: background-color 0.3s;
+        }
+        .btn-custom:hover {
+            background-color: #574fcf;
+        }
+        .task-item {
+            background-color: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .modal-header {
+            background-color: #6c63ff;
+            color: white;
+        }
+        .modal-footer .btn-custom {
+            background-color: #6c63ff;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">
+                <img
+                  src="https://attachments.timetreeapp.com/public_calendar/0b57/2024-06-05/183086-1717602782797.jpg"
+                  alt="TWS" width="120" height="48">
+              </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link active" aria-current="page" href="index.html">首頁</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="股票.html">股票</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="空氣品質.html">空氣品質</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="天氣預報.html">天氣預報</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="新增.html">新增筆記功能</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+<header class="bg-primary text-white py-4">
+    <div class="container text-center">
+        <h1 class="fw-bold">代辦事項管理系統</h1>
+        <p class="lead">管理您的待辦清單，輕鬆掌握每日計劃</p>
+    </div>
+</header>
+
+<div class="container mt-5">
+    <!-- 新增代辦事項卡片 -->
+    <div class="card p-4 mb-5">
+        <h2 class="text-center text-primary mb-4">新增代辦事項</h2>
+        <form id="taskForm">
+            <div class="mb-3">
+                <label for="task" class="form-label">任務描述:</label>
+                <input type="text" id="task" name="task" class="form-control" placeholder="輸入代辦任務" required>
+            </div>
+            <button type="submit" class="btn btn-custom w-100">新增任務</button>
+        </form>
+    </div>
+
+    <!-- 查看代辦事項卡片 -->
+    <div class="card p-4">
+        <h2 class="text-center text-primary mb-4">代辦事項列表</h2>
+        <button id="fetchAllTasksButton" onclick="fetchAllTasks()" class="btn btn-info w-100 mb-4">查看所有任務</button>
+        <div id="taskList"></div>
+    </div>
+</div>
+
+<!-- Modal for Delete Confirmation -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">刪除任務</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>你確定要刪除這個任務嗎？此操作無法還原。</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-danger" onclick="confirmDelete()">確認刪除</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal for Update Task -->
+<div class="modal fade" id="updateModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">更新任務</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="updateForm">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="updateTask" class="form-label">任務描述:</label>
+                        <input type="text" id="updateTask" name="task" class="form-control" required>
+                    </div>
+                    <div class="form-check mb-3">
+                        <input type="checkbox" id="updateCompleted" name="completed" class="form-check-input">
+                        <label class="form-check-label" for="updateCompleted">已完成</label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-custom">更新任務</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    const studentId = "student123";  // 固定學生 ID
+    let taskToDeleteId = null;
+    let taskToUpdateId = null;
+
+    // 開啟刪除模態框
+    function openDeleteModal(id) {
+        taskToDeleteId = id;
+        const deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
+        deleteModal.show();
+    }
+
+    // 開啟更新模態框
+    function openUpdateModal(id, task, completed) {
+        taskToUpdateId = id;
+        document.getElementById('updateTask').value = task;
+        document.getElementById('updateCompleted').checked = completed;
+
+        const updateModal = new bootstrap.Modal(document.getElementById('updateModal'));
+        updateModal.show();
+    }
+
+// 確認刪除
+async function confirmDelete() {
+    const deleteModal = bootstrap.Modal.getInstance(document.getElementById('deleteModal'));
+    try {
+        const response = await fetch(`https://nfutest.pythonanywhere.com/todos/${taskToDeleteId}`, {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ student_id: studentId })
+        });
+
+        if (response.ok) {
+            alert("刪除成功！");
+            fetchAllTasks();
+        } else {
+            alert("刪除失敗：" + response.statusText);
+        }
+    } catch (error) {
+        alert("刪除失敗：" + error.message);
+    } finally {
+        deleteModal.hide(); // 隱藏刪除模態框
+    }
+}
+
+// 提交更新
+document.getElementById('updateForm').addEventListener('submit', async (event) => {
+    event.preventDefault();
+
+    const task = document.getElementById('updateTask').value;
+    const completed = document.getElementById('updateCompleted').checked;
+    const updateModal = bootstrap.Modal.getInstance(document.getElementById('updateModal'));
+
+    try {
+        const response = await fetch(`https://nfutest.pythonanywhere.com/todos/${taskToUpdateId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ student_id: studentId, task, completed })
+        });
+
+        if (response.ok) {
+            alert("更新成功！");
+            fetchAllTasks();
+        } else {
+            alert("更新失敗：" + response.statusText);
+        }
+    } catch (error) {
+        alert("更新失敗：" + error.message);
+    } finally {
+        updateModal.hide(); // 隱藏更新模態框
+    }
+});
+
+    // 查看所有任務
+    async function fetchAllTasks() {
+        const taskList = document.getElementById('taskList');
+        taskList.innerHTML = "";
+
+        try {
+            const response = await fetch(`https://nfutest.pythonanywhere.com/todos?student_id=${studentId}`);
+            const responseData = await response.json();
+
+            responseData.todos.forEach(todo => {
+                const taskItem = document.createElement('div');
+                taskItem.classList.add('task-item', 'p-3', 'mb-3', 'd-flex', 'justify-content-between', 'align-items-center');
+
+                taskItem.innerHTML = `
+                    <div>
+                        <h5 class="mb-1">${todo.task}</h5>
+                        <small class="text-muted">已完成: ${todo.completed ? '是' : '否'}</small>
+                    </div>
+                    <div>
+                        <button class="btn btn-warning btn-sm me-2" onclick="openUpdateModal(${todo.id}, '${todo.task}', ${todo.completed})">更新</button>
+                        <button class="btn btn-danger btn-sm" onclick="openDeleteModal(${todo.id})">刪除</button>
+                    </div>
+                `;
+
+                taskList.appendChild(taskItem);
+            });
+        } catch (error) {
+            alert("無法獲取任務：" + error.message);
+        }
+    }
+
+    // 新增任務
+    document.getElementById('taskForm').addEventListener('submit', async (event) => {
+        event.preventDefault();
+
+        const task = document.getElementById('task').value;
+
+        try {
+            await fetch('https://nfutest.pythonanywhere.com/todos', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ student_id: studentId, task })
+            });
+
+            alert("新增成功！");
+            fetchAllTasks();
+        } catch (error) {
+            alert("新增失敗：" + error.message);
+        }
+    });
+</script>
+
+</body>
+</html>
