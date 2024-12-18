@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>空氣品質指標資料</title>
+    <!-- 引入 Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f7fc;
+        }
+
+        h1 {
+            text-align: center;
+            margin-top: 30px;
+            color: #495057;
+            font-size: 2rem;
+        }
+
+        .navbar {
+            margin-bottom: 30px;
+        }
+
+        .navbar-brand {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        .navbar-nav .nav-item .nav-link {
+            font-size: 1rem;
+            padding: 12px 20px;
+        }
+
+        .navbar-nav .nav-item .nav-link.active {
+            color: #007bff;
+        }
+
+        .container {
+            margin: 0 auto;
+            max-width: 1200px;
+            padding: 15px;
+        }
+
+        .search-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        #searchBar {
+            padding: 10px;
+            width: 70%;
+            font-size: 1rem;
+            border-radius: 4px;
+            border: 1px solid #ced4da;
+            margin-right: 10px;
+        }
+
+        #searchButton {
+            padding: 10px 20px;
+            font-size: 1rem;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        #searchButton:hover {
+            background-color: #0056b3;
+        }
+
+        table {
+            width: 100%;
+            margin-top: 30px;
+            border-collapse: collapse;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            background-color: #fff;
+        }
+
+        th, td {
+            padding: 15px;
+            text-align: left;
+            border: 1px solid #dee2e6;
+        }
+
+        th {
+            background-color: #e9ecef;
+            color: #495057;
+            font-weight: bold;
+        }
+
+        tbody tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+
+        tbody tr:hover {
+            background-color: #e2e6ea;
+        }
+
+        th:hover {
+            background-color: #dee2e6;
+        }
+
+        .empty-state {
+            text-align: center;
+            font-size: 1.25rem;
+            color: #6c757d;
+        }
+
+        @media (max-width: 768px) {
+            #searchBar {
+                width: 60%;
+            }
+
+            #searchButton {
+                padding: 8px 16px;
+            }
+
+            th, td {
+                font-size: 0.875rem;
+                padding: 10px;
+            }
+
+            h1 {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 導覽列 -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">
+                <img
+                  src="https://attachments.timetreeapp.com/public_calendar/0b57/2024-06-05/183086-1717602782797.jpg"
+                  alt="TWS" width="120" height="48">
+              </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link active" aria-current="page" href="index.html">首頁</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link " href="股票.html">股票</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="空氣品質.html">空氣品質</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="天氣預報.html">天氣預報</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="新增.html">新增筆記功能</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <h1>空氣品質指標資料</h1>
+    
+        <!-- 搜尋欄與按鈕 -->
+        <div class="search-container">
+            <input type="text" id="searchBar" placeholder="搜尋測站名稱或縣市...">
+            <button id="searchButton">搜尋</button>
+        </div>
+
+        <table id="airQualityTable">
+            <thead>
+                <tr>
+                    <th data-column="sitename">測站名稱</th>
+                    <th data-column="county">縣市</th>
+                    <th data-column="aqi">空氣品質指標</th>
+                    <th data-column="pollutant">空氣污染指標物</th>
+                    <th data-column="status">狀態</th>
+                    <th data-column="publishtime">資料發布時間</th> <!-- 新增資料發布時間欄位 -->
+                </tr>
+            </thead>
+            <tbody>
+                <!-- 資料會動態填入這裡 -->
+            </tbody>
+        </table>
+
+        <div id="emptyState" class="empty-state" style="display: none;">
+            無資料可顯示。
+        </div>
+    </div>
+
+    <script>
+        let records = [];
+
+        // 發送API請求
+        fetch('https://data.moenv.gov.tw/api/v2/aqx_p_432?api_key=e8dd42e6-9b8b-43f8-991e-b3dee723a52d&limit=1000&sort=ImportDate desc&format=JSON')
+            .then(response => response.json())  // 解析JSON格式的回應
+            .then(data => {
+                records = data.records || [];
+                const tableBody = document.querySelector('#airQualityTable tbody');
+                renderTable(records, tableBody);
+
+                // 搜尋功能
+                const searchBar = document.getElementById('searchBar');
+                const searchButton = document.getElementById('searchButton');
+
+                // 搜尋功能的按鈕觸發
+                searchButton.addEventListener('click', () => {
+                    const searchTerm = searchBar.value.toLowerCase();
+                    const filteredRecords = records.filter(record => 
+                        record.sitename.toLowerCase().includes(searchTerm) ||
+                        record.county.toLowerCase().includes(searchTerm)
+                    );
+
+                    renderTable(filteredRecords, tableBody);
+                });
+
+                // 排序功能
+                const headers = document.querySelectorAll('th');
+                headers.forEach(header => {
+                    header.addEventListener('click', () => {
+                        const column = header.getAttribute('data-column');
+                        const isNumber = column === 'aqi'; // 判斷是否為數字欄位
+
+                        sortTable(column, isNumber, tableBody);
+                    });
+                });
+            })
+            .catch(error => {
+                console.error('資料獲取錯誤:', error);
+            });
+
+        // 渲染表格的資料
+        function renderTable(data, tableBody) {
+            tableBody.innerHTML = ''; // 清空表格內容
+            if (data.length === 0) {
+                document.getElementById('emptyState').style.display = 'block';
+            } else {
+                document.getElementById('emptyState').style.display = 'none';
+                data.forEach(record => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `  
+                        <td>${record.sitename}</td>
+                        <td>${record.county}</td>
+                        <td>${record.aqi}</td>
+                        <td>${record.pollutant}</td>
+                        <td>${record.status}</td>
+                        <td>${record.publishtime}</td> <!-- 顯示資料發布時間 -->
+                    `;
+                    tableBody.appendChild(row);
+                });
+            }
+        }
+
+        // 排序表格的函數
+        function sortTable(column, isNumber, tableBody) {
+            const sortedRecords = [...records].sort((a, b) => {
+                if (isNumber) {
+                    // 若是數字欄位 (如 AQI)，則按數字排序
+                    return parseInt(a[column]) - parseInt(b[column]);
+                } else {
+                    // 否則按字串排序
+                    return a[column].localeCompare(b[column]);
+                }
+            });
+
+            renderTable(sortedRecords, tableBody);
+        }
+
+        src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"
+    </script>
+</body>
+</html>
